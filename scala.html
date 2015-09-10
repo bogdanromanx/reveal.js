@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scala</title>
+
+    <meta name="description" content="An overview of the Scala language">
+    <meta name="author" content="Bogdan Roman">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/endava.css" id="theme">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+<div class="reveal">
+    <div class="slides">
+        <section>
+            <h1>Why Scala<strong>?</strong></h1>
+            <p><em>...an introductory session...</em></p>
+            <p>
+                <small><a href="mailto:bogdan.roman@endava.com">Bogdan Roman</a> | Software Engineer | 2015</small>
+            </p>
+        </section>
+        <section>
+            <section>
+                <h1>Programming Paradigms</h1>
+                <ul>
+                    <li>Imperative</li>
+                    <li>Declarative</li>
+                    <li>Functional</li>
+                    <li>Object Oriented</li>
+                    <li>Logic</li>
+                    <li>Symbolic</li>
+                </ul>
+            </section>
+            <section>
+                <h1>Imperative</h1>
+                <p class="fragment"><em>Describes computation in terms of statements that change the program state.</em></p>
+                <ul class="fragment">
+                    <li>Modifying mutable variables</li>
+                    <li>Use of assignments</li>
+                    <li>Use of control structures (if-then-else, loops, break, continue, return)</li>
+                </ul>
+                <p class="fragment">C++ / Java / Objective-C / PHP / Scala etc.</p>
+            </section>
+            <section>
+                <h1>Functional</h1>
+                <p class="fragment"><em>Treats computations as an evaluation of mathematical functions and avoids state
+                    and mutable data.</em></p>
+                <ul class="fragment">
+                    <li>No mutable variables</li>
+                    <li>No assignments</li>
+                    <li>No imperative control structures</li>
+                </ul>
+                <p class="fragment">Lisp / Closure / Haskell / F# / Scala etc.</p>
+            </section>
+            <section>
+                <h1>Why Functional<strong>?</strong></h1>
+                <p>Managing state in multi-core is a nightmare</p>
+                <p>Functional programming techniques are inherently parallelizable</p>
+                <p>Allows compilers to perform optimizations</p>
+                <p>Provider higher level abstractions</p>
+            </section>
+            <section>
+                <h1>Functional History</h1>
+                <small>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year(s)</th>
+                                <th>Language(s)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1959</td>
+                                <td>Lisp</td>
+                            </tr>
+                            <tr>
+                                <td>1975-1977</td>
+                                <td>ML / FP / Scheme</td>
+                            </tr>
+                            <tr>
+                                <td>1978</td>
+                                <td>Smalltalk</td>
+                            </tr>
+                            <tr>
+                                <td>1986</td>
+                                <td>Standard ML</td>
+                            </tr>
+                            <tr>
+                                <td>1990</td>
+                                <td>Haskell / Erlang</td>
+                            </tr>
+                            <tr>
+                                <td>2000</td>
+                                <td>OCaml</td>
+                            </tr>
+                            <tr>
+                                <td>2003</td>
+                                <td>Scala</td>
+                            </tr>
+                            <tr>
+                                <td>2005</td>
+                                <td>F#</td>
+                            </tr>
+                            <tr>
+                                <td>2007</td>
+                                <td>Closure</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </small>
+            </section>
+        </section>
+        <section>
+            <h1>Scala</h1>
+            <ul>
+                <li>General purpose language</li>
+                <li>Both <strong>Imperative</strong> and <strong>Functional</strong></li>
+                <li>Compiles into Java bytecode and runs on the JVM</li>
+                <li>Interoperable with Java</li>
+                <li>Very strong static type system</li>
+                <li>Inspired by the criticism of Java shortcomings</li>
+            </ul>
+        </section>
+        <section>
+            <section>
+                <h1>Features of FP</h1>
+                <ul>
+                    <li>First class / Higher order functions</li>
+                    <li>Pure functions</li>
+                    <li>Recursion - tail call optimizations</li>
+                    <li>Unchecked exceptions</li>
+                    <li>Non-strict (lazy) evaluation</li>
+                    <li>Currying</li>
+                    <li>Closures</li>
+                    <li>Pattern matching</li>
+                    <li>Type inference</li>
+                    <li>Strong collection libraries</li>
+                </ul>
+            </section>
+            <section>
+                <h1>Functions</h1>
+                <p>A language is said to have <strong>first class</strong> functions if it treats functions as first class citizens.</p>
+                <p>A <strong>higher order</strong> function is a function that can take other functions as arguments or return functions.</p>
+            </section>
+            <section>
+                <h1>Pure Functions</h1>
+                <p><em>Pure functions have no side effects (memory / IO).</em></p>
+                <ul>
+                    <li>If the result of a pure expression is not used it can be removed.</li>
+                    <li>The result of a pure function is constant with regards to its arguments (caching / memoization).</li>
+                    <li>Pure functions with no data dependency are thread safe (can be executed in reversed order or in parallel).</li>
+                </ul>
+            </section>
+            <section>
+                <h1>Recursion</h1>
+                <p><em>In FP iteration (looping) is accomplished via recursion.</em></p>
+                <p>Recursive functions invoke themselves until a base case is reached.</p>
+                <p>Tail call optimizations can be performed to avoid maintaining a stack.</p>
+                <p>Common patterns of recursion can be simplified by use of higher order functions (map / fold etc.).</p>
+            </section>
+            <section>
+                <h1>Non-strict Evaluation</h1>
+                <p><small>AKA: call-by-need / call-by-name</small></p>
+                <p><em>An evaluation strategy which delays the evaluation of an expression until its value is needed.</em></p>
+                <ul>
+                    <li>Can lead to smaller memory footprint</li>
+                    <li>Can increase performance</li>
+                    <li>Allows building infinite data structures (i.e.: streams)</li>
+                </ul>
+            </section>
+            <section>
+                <h1>Currying</h1>
+                <p><em>A technique for partial function application.</em></p>
+                <p>Allows for a transformation of a function that takes multiple arguments in a way that can be called
+                as a chain of functions.</p>
+                <pre><code>
+                    f(x, y, z) => f(x)(y)(z)
+                </code></pre>
+            </section>
+            <section>
+                <h1>Closures</h1>
+                <p><em>A reference to a function together with its referencing environment.</em></p>
+                <p>Allows a function access to non-local variables when invoked outside its scope.</p>
+                <pre><code>
+                    def start(x: Int) = {
+                        def increment(y: Int) = {
+                            x + y
+                        }
+                        increment
+                    }
+                </code></pre>
+            </section>
+            <section>
+                <h1>Pattern Matching</h1>
+                <p><em>The act of perceiving the constituents of a data structure as constituents of a pattern.</em></p>
+                <p>Makes manipulations of complex data structures convenient and expressive.</p>
+                <p><small>(matching messaging in actor systems)</small></p>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h1>Why Scala<strong>?</strong></h1>
+                <ol>
+                    <li>It's concise</li>
+                    <li>It brings Imperative and Functional together</li>
+                    <li>Interoperable with Java</li>
+                    <li>Allows you to focus on what's important</li>
+                </ol>
+            </section>
+            <section>
+                <h1>Let's try it</h1>
+            </section>
+        </section>
+        <section>
+            <h1>Q & A</h1>
+            <p>Thank you for listening</p>
+            <p><small>Email me @ <a href="mailto:bogdan.roman@endava.com">Bogdan Roman</a></small></p>
+        </section>
+    </div>
+</div>
+
+<div id="logo"><img src="img/logo.png"/></div>
+<div id="footer"></div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+
+<script>
+    // Full list of configuration options available at:
+    // https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        transition: 'zoom', // none/fade/slide/convex/concave/zoom
+        transitionSpeed: 'fast', // default/fast/slow
+
+        // Optional reveal.js plugins
+        dependencies: [
+            { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+            { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            { src: 'plugin/zoom-js/zoom.js', async: true },
+            { src: 'plugin/notes/notes.js', async: true }
+        ]
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Time Traveling in Distributed Software Systems</title>
+
+    <meta name="description" content="Event Sourcing / CQRS / Akka Clustering, Cluster Sharding, Persistence in a nutshell">
+    <meta name="author" content="Bogdan Roman">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="../css/reveal.css">
+    <link rel="stylesheet" href="../css/theme/endava.css" id="theme">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="../lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="../lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+<div class="reveal">
+    <div class="slides">
+        <section>
+            <section>
+                <h2>Time Traveling in Distributed Software Systems</h2>
+                <p>
+                    <small><a href="mailto:bogdan.roman@endava.com">Bogdan Roman</a> | Software Engineer | 2015</small>
+                </p>
+            </section>
+            <section>
+                <ul>
+                    <li>EventSourcing</li>
+                    <li>CQRS</li>
+                    <li>EventSourcing &amp; CQRS with Akka Persistence</li>
+                    <li>Scaling out with Akka Clustering</li>
+                </ul>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>Transactional systems don't scale out easily</h2>
+                <aside class="notes">
+                    - strong consistency implies a lot of bookkeeping (lose efficiency)<br/>
+                    - transactions inherently serialize workload
+                </aside>
+            </section>
+            <section>
+                <object data="img/amdahls-law.svg" type="image/svg+xml"></object>
+                <p><small>(<a href="https://en.wikipedia.org/wiki/Amdahl%27s_law">wikipedia</a>)</small></p>
+                <aside class="notes">
+                    - speedup gained by adding resources is limited by the percentage of serial work<br/>
+                    - Gustafson-Barsis' Law - efficiency drops when adding resources
+                </aside>
+            </section>
+            <section>
+                <img class="svgimg" src="img/three-plus-one.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/many-three-plus-one.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/many-three-plus-many.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/many-plus-many.svg"/>
+                <aside class="notes">
+                    - strong consistency is already out the door
+                </aside>
+            </section>
+            <section>
+                <h2>Achieving consistency without transactions</h2>
+                <aside class="notes">
+
+                </aside>
+            </section>
+            <section>
+                <img class="svgimg" src="img/sequence.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/sequence-failed.svg"/>
+                <aside class="notes">
+                    - whatever failure: data changed, unable to IO, node failure
+                </aside>
+            </section>
+            <section>
+                <img class="svgimg" src="img/sequence-idempotency-compensation.svg"/>
+                <aside class="notes">
+                    - steps don't need to be serial<br/>
+                    - how event sourcing helps with that
+                </aside>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>EventSourcing</h2>
+            </section>
+            <section>
+                <h3>In place updates</h3>
+                <table>
+                    <tr>
+                        <th colspan="3">BALANCE</th>
+                    </tr>
+                    <tr>
+                        <th>account_id</th>
+                        <th>balance</th>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>40c13016-9c6...</td>
+                        <td>£200</td>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                    </tr>
+                </table>
+            </section>
+            <section>
+                <h3>In place updates (debit)</h3>
+                <table>
+                    <tr>
+                        <th colspan="3">BALANCE</th>
+                    </tr>
+                    <tr>
+                        <th>account_id</th>
+                        <th>balance</th>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>40c13016-9c6...</td>
+                        <td><strong>£100</strong></td>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                    </tr>
+                </table>
+            </section>
+            <section>
+                <h3>EventSourced</h3>
+                <table>
+                    <tr>
+                        <th colspan="4">BALANCE</th>
+                    </tr>
+                    <tr>
+                        <th>account_id</th>
+                        <th>seq</th>
+                        <th>delta</th>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>40c13016-9c6...</td>
+                        <td>753...</td>
+                        <td><strong>-£100</strong></td>
+                        <td>...</td>
+                    </tr>
+                    <tr>
+                        <td>...</td>
+                        <td>...</td>
+                        <td>...</td>
+                    </tr>
+                </table>
+            </section>
+            <section>
+                <h3>EventSourced</h3>
+                <table>
+                    <tr>
+                        <th colspan="3">BALANCE</th>
+                    </tr>
+                    <tr>
+                        <th>account_id</th>
+                        <th>seq</th>
+                        <th>delta</th>
+                    </tr>
+                    <tr>
+                        <td>40c13016-9c6...</td>
+                        <td>1</td>
+                        <td><strong style="color: green">+£2000</strong></td>
+                    </tr>
+                    <tr>
+                        <td>40c13016-9c6...</td>
+                        <td>2</td>
+                        <td><strong>-£25</strong></td>
+                    </tr>
+                    <tr>
+                        <td>40c13016-9c6...</td>
+                        <td>3</td>
+                        <td><strong>-£100</strong></td>
+                    </tr>
+                    <tr>
+                        <td>40c13016-9c6...</td>
+                        <td>4</td>
+                        <td><strong style="color: green">+£15</strong></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td><strong style="color: grey">£1890</strong></td>
+                    </tr>
+                </table>
+                <aside class="notes">
+                    - don't have to be actual tables (documents, cells / timestamps in HBase)
+                </aside>
+            </section>
+            <section>
+                <h2>Rows are now Journals</h2>
+                <img class="svgimg" src="img/row-to-journal.svg"/>
+            </section>
+            <section>
+                <h2>Never Modify</h2>
+                <h2>Always Move Forward</h2>
+                <h2>CR<span style="text-decoration: line-through">UD</span></h2>
+                <aside class="notes">
+                    <p><small>Source control for you data</small></p>
+                    <p><small>Disks that only permit read and appends, never updates</small></p>
+                </aside>
+            </section>
+            <section>
+                <h2>How the world works</h2>
+                <aside class="notes">
+                    - it's how we make sense of things
+                </aside>
+            </section>
+            <section>
+                <h2>How businesses work</h2>
+                <ul>
+                    <li>Banking</li>
+                    <li>Accounting</li>
+                    <li>Contracts</li>
+                </ul>
+            </section>
+            <section>
+                <img class="svgimg" src="img/sequence-idempotency-compensation.svg"/>
+                <aside class="notes">
+                    - deduplicate entries when computing current state<br/>
+                    - reverse entries (revert in GIT)
+                </aside>
+            </section>
+            <section>
+                <h2>Audit Log</h2>
+                <h2>Fast writes</h2>
+                <aside class="notes">
+                    - evolution of your data model
+                </aside>
+            </section>
+            <section>
+                <h2>Snapshots</h2>
+                <img class="svgimg" src="img/journal-snapshot.svg"/>
+                <aside class="notes">
+                    - before going into akka - cqrs
+                </aside>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>CQRS</h2>
+                <p><strong>C</strong>ommand <strong>Q</strong>uery <strong>R</strong>esponsibility <strong>S</strong>egregation</p>
+            </section>
+            <section>
+                <img class="svgimg" src="img/cqrs-default.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/cqrs-separate.svg"/>
+                <aside class="notes">
+                    - commands can be rejected<br/>
+                    - side effects
+                </aside>
+            </section>
+            <section>
+                <h2>What you get...</h2>
+                <ul>
+                    <li>Independent Scaling</li>
+                    <li>Read / Write Optimisations</li>
+                    <li>Data Model Complexity</li>
+                </ul>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>Message Driven Systems</h2>
+                <h4>CommandSourcing</h4>
+                <h4>EventSourcing</h4>
+            </section>
+            <section>
+                <img class="svgimg" src="img/es-flavours.svg"/>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>Akka Persistence</h2>
+            </section>
+            <section>
+                <img class="svgimg" src="img/akka-persistence.svg"/>
+                <aside class="notes">
+                    - special types of actors<br/>
+                    - one actor per persistenceId
+                </aside>
+            </section>
+            <section>
+                <pre><code data-trim>
+                    trait PersistentActor {
+                      def persistenceId: String
+                      def receiveCommand: Receive
+                      def receiveRecover: Receive
+                    }
+                </code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>sealed trait Command
+object Command {
+  case class CreditAccount(value: BigDecimal) extends Command
+  case class DebitAccount(value: BigDecimal) extends Command
+}
+
+sealed trait Event
+object Event {
+  case class AccountCredited(value: BigDecimal) extends Event
+  case class AccountDebited(value: BigDecimal) extends Event
+  case class DebitAccountRejected(reason: String) extends Event
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>class BalanceActor extends PersistentActor {
+  val persistenceId = "40c13016-9c6..."
+  var balance: BigDecimal = 0
+
+  def receiveCommand = {
+    case CreditAccount(amount) =>
+      persist(AccountCredited(amount)) { case ev =>
+        balance = balance + amount
+        sender() ! ev
+      }
+    case DebitAccount(amount) =>
+      if (balance < amount) sender() ! DebitAccountRejected("not enough money")
+      else persist(AccountDebited(amount)) { case ev =>
+        balance = balance - amount
+        sender() ! ev
+      }
+  }
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>class BalanceActor extends PersistentActor {
+  val persistenceId = "40c13016-9c6..."
+  var balance: BigDecimal = 0
+
+  def receiveCommand = {
+    case cmd@CreditAccount(amount) =>
+      persist(cmd) { case _ =>
+        balance = balance + amount
+        sender() ! AccountCredited(amount)
+      }
+    case cmd@DebitAccount(amount) =>
+      if (balance < amount) sender() ! DebitAccountRejected("not enough money")
+      else persist(cmd) { case _ =>
+        balance = balance - amount
+        sender() ! AccountDebited(amount)
+      }
+  }
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>class BalanceActor extends PersistentActor {
+  val persistenceId = "40c13016-9c6..."
+  var balance: BigDecimal = 0
+
+  def receiveCommand = {...}
+
+  def receiveRecover = {
+    case AccountCredited(amount) =>
+      balance = balance + amount
+    case AccountDebited(amount) =>
+      balance = balance - amount
+  }
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>
+                    trait PersistentView {
+                      def persistenceId: String
+                      def viewId: String
+                      def receive: Receive
+                    }
+                </code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>class BalanceView extends PersistentView {
+  val persistenceId = "40c13016-9c6..."
+  val viewId = s"$persistenceId-balance"
+  var balance: BigDecimal = 0
+
+  def receive = {
+    case AccountCredited(amount) =>
+      balance = balance + amount
+    case AccountDebited(amount) =>
+      balance = balance - amount
+    case GetBalance =>
+      sender() ! balance
+  }
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>class TransactionCountView extends PersistentView {
+  val persistenceId = "40c13016-9c6..."
+  val viewId = s"$persistenceId-count"
+  var count = 0
+
+  def receive = {
+    case _: Event =>
+      count = count + 1
+    case GetTransactionCount =>
+      sender() ! count
+  }
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>class BalanceActor extends PersistentActor {
+  val persistenceId = "40c13016-9c6..."
+  var balance: BigDecimal = 0
+
+  def receiveCommand = {
+    case SaveSnapshot => saveSnapshot(balance)
+    // ... other cases
+  }
+
+  def receiveRecover = {
+    case SnapshotOffer(metadata, snap: BigDecimal) => balance = snap
+    case AccountCredited(amount) => balance = balance + amount
+    case AccountDebited(amount) => balance = balance - amount
+  }
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>class BalanceView extends PersistentView {
+  val persistenceId = "40c13016-9c6..."
+  val viewId = s"$persistenceId-balance"
+  var balance: BigDecimal = 0
+
+  def receive = {
+    case SaveSnapshot => saveSnapshot(balance)
+    case SnapshotOffer(metadata, snap: BigDecimal) => balance = snap
+    case AccountCredited(amount) => balance = balance + amount
+    case AccountDebited(amount) => balance = balance - amount
+    // ... other cases
+  }
+}</code></pre>
+            </section>
+            <section>
+                <h2>Rich API</h2>
+                <ul>
+                    <li>persistAsync</li>
+                    <li>Custom recovery strategies</li>
+                    <li>Message deletion</li>
+                    <li>Management of snapshots</li>
+                    <li>Batch Writes</li>
+                    <li>Event Adapters</li>
+                    <li>PersistentFSM</li>
+                </ul>
+            </section>
+            <section>
+                <h2>Plugins</h2>
+                <ul>
+                    <li>Journal Plugins</li>
+                    <li>Snapshot Plugins</li>
+                    <li>LevelDB</li>
+                    <li>Community Plugins</li>
+                </ul>
+            </section>
+            <section>
+                <h2>Persistence Query</h2>
+                <pre><code data-trim>
+                    @deprecated("use Persistence Query instead", "2.4")
+                    trait PersistentView
+                </code></pre>
+                <aside class="notes">
+                    - query across persistence ids<br/>
+                    - views can be used to manage a distinct data store
+                </aside>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>Scaling Out</h2>
+            </section>
+            <section>
+                <h2>Akka Clustering</h2>
+                <ul>
+                    <li>Allows nodes to be aware of each other</li>
+                    <li>Decentralised</li>
+                    <li>Gossip</li>
+                    <li>Leader: manages cluster membership</li>
+                </ul>
+            </section>
+            <section>
+                <img class="svgimg" src="img/cluster.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/cluster-delta.svg"/>
+            </section>
+            <section>
+                <h2>Akka Cluster Sharding</h2>
+                <ul>
+                    <li>Location Transparency</li>
+                    <li>Shard Balancing</li>
+                    <li>Deterministic Message Routing</li>
+                </ul>
+            </section>
+            <section>
+                <img class="svgimg" src="img/sharding.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/node-regions.svg"/>
+            </section>
+            <section>
+                <img class="svgimg" src="img/region.svg"/>
+            </section>
+            <section>
+                <h3>Start Region</h3>
+                <pre><code data-trim>ClusterSharding(system).start(
+    typeName = "balance",
+    entityProps = Props[BalanceActor],
+    settings = ClusterShardingSettings(system),
+    extractEntityId = extractEntityId,
+    extractShardId = extractShardId)</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>case class Account(customerId: Long, accountId: Long)
+trait AccountRef {
+  def account: Account
+}
+
+case class DebitAccount(account: Account, value: BigDecimal)
+    extends Command with AccountRef
+
+val numberOfShards = 100
+val extractShardId: ShardRegion.ExtractShardId = {
+  case ref: AccountRef => (ref.account.customerId % numberOfShards, ref)
+}
+
+val extractEntityId: ShardRegion.ExtractEntityId = {
+  case ref: AccountRef => (ref.account.accountId.toString, ref)
+}</code></pre>
+            </section>
+            <section>
+                <h3>Refer to Region</h3>
+                <pre><code data-trim>val balance = ClusterSharding(system).shardRegion("balance")
+val account = Account(1, 1)
+
+balance ! DebitAccount(account, 200)</code></pre>
+            </section>
+        </section>
+        <section>
+            <img class="svgimg" src="img/final.svg"/>
+        </section>
+        <section>
+            <h1>Q & A</h1>
+            <p>Thank you for listening</p>
+            <p><small>Email me @ <a href="mailto:bogdan.roman@endava.com">Bogdan Roman</a></small></p>
+        </section>
+        <section>
+            <p><small>
+                This presentation will be soon available on Skills Matter.com at the following link:
+                <a href="https://skillsmatter.com/conferences/6862-scala-exchange-2015#skillscasts">https://skillsmatter.com/conferences/6862-scala-exchange-2015#skillscasts</a>
+            </small></p>
+        </section>
+    </div>
+</div>
+
+<div id="logo"><img src="../img/logo.png"/></div>
+<div id="footer"></div>
+
+<script src="../lib/js/head.min.js"></script>
+<script src="../js/reveal.js"></script>
+
+<script>
+    // Full list of configuration options available at:
+    // https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        slideNumber: 'c',
+
+        transition: 'zoom', // none/fade/slide/convex/concave/zoom
+        transitionSpeed: 'fast', // default/fast/slow
+
+        // Optional reveal.js plugins
+        dependencies: [
+            { src: '../lib/js/classList.js', condition: function() { return !document.body.classList; } },
+            { src: '../plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: '../plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: '../plugin/highlight/highlight.pack.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            { src: '../plugin/zoom-js/zoom.js', async: true },
+            { src: '../plugin/notes/notes.js', async: true }
+        ]
+    });
+</script>
+
+</body>
+</html>
