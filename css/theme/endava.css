@@ -300,3 +300,7 @@ body {
 .svgimg {
   width: 800px;
   height: 500px; }
+
+.strikethrough {
+  text-decoration: line-through;
+}

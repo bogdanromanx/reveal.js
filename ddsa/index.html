@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dos and Don'ts when starting with Scala and Akka</title>
+
+    <meta name="description" content="A collections of lessons learned while running a Scala / Akka based project">
+    <meta name="author" content="Bogdan Roman">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="../css/reveal.css">
+    <link rel="stylesheet" href="../css/theme/endava.css" id="theme">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="../lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="../lib/js/html5shiv.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+<div class="reveal">
+    <div class="slides">
+        <section>
+            <section>
+                <h2>Dos and Don'ts</h2>
+                <h4>... when starting with Scala and Akka</h4>
+                <p>
+                    <small><a href="mailto:bogdan.roman@endava.com">Bogdan Roman</a> | Software Developer | 2016</small>
+                </p>
+            </section>
+            <section>
+                <h2>An 'unnamed' project</h2>
+                <ul>
+                    <li>Running for ~ 2 years</li>
+                    <li>Peaked at 13 dev teams</li>
+                    <li>Started from scratch</li>
+                </ul>
+                <aside class="notes">
+                    <p>I’m not allowed to give details that will directly identify the Client</p>
+                    <p>architects / design / governance / devops</p>
+                    <p>little to no professional scala experience</p>
+                    <p>Architecture SoW ending with a 6 weeks PoC</p>
+                </aside>
+            </section>
+            <section>
+                <h2>The PoC</h2>
+                <ul>
+                    <li>Goal: (dis)prove the technology recommendations</li>
+                    <li>Demonstrate:
+                        <ul>
+                            <li>basic service functions</li>
+                            <li>asynchronous api semantics</li>
+                            <li>the use of an amqp broker</li>
+                            <li>cloud deployment</li>
+                            <li>log aggregation</li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <h2>The Contest</h2>
+                <pre><code data-trim>type Puppy = Scala :: Akka :: Spray :: HNil
+type OldDogNewTricks = Java :: RxJava :: Hystrix :: HNil
+
+type Choice = OldDogNewTricks :+: Puppy :+: CNil</code></pre>
+                <small>
+                    <table>
+                        <tr>
+                            <th>Week</th>
+                            <th>OldDogNewTricks</th>
+                            <th>Puppy</th>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>Architecture Docs ???</td>
+                            <td>Architecture Docs ???</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Starting Dev</td>
+                            <td>Kicking of basic support tools</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Development</td>
+                            <td>Starting Development</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Circuit Breakers</td>
+                            <td>Clustering / Akka Persistence</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>Hystrix Dashboard</td>
+                            <td>Load testing different journals</td>
+                        </tr>
+                        <tr>
+                            <td>6</td>
+                            <td>Load Testing</td>
+                            <td>Service Versioning with Cluster Roles</td>
+                        </tr>
+                    </table>
+                </small>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>Environment</h2>
+                <ul>
+                    <li>Build Tool</li>
+                    <li>Config</li>
+                    <li>CI</li>
+                    <li>Deployment</li>
+                </ul>
+                <aside class="notes">
+                </aside>
+            </section>
+            <section>
+                <h2>Maven | SBT</h2>
+                <ul>
+                    <li>Maven is great</li>
+                    <li>Try SBT either way...</li>
+                </ul>
+                <p>
+                    <small><em>... developers don't read docs ...</em></small>
+                </p>
+            </section>
+            <section>
+                <h2>(Typesafe) Config</h2>
+            </section>
+            <section>
+                <h2>CI</h2>
+                <p>We use <strong>Jenkins</strong>, it just works.</p>
+            </section>
+            <section>
+                <h2>Deployment</h2>
+                <p>Any tool is fine...</p>
+                <p>... as long as it gets your code <strong>quickly</strong> to production.</p>
+            </section>
+            <section>
+                <h2>And let's not forget</h2>
+                <ul>
+                    <li>Code Reviews</li>
+                    <li>Code Coverage</li>
+                    <li>Static Analysis / Linting</li>
+                    <li>Builds before Merges</li>
+                    <li>Testing and promoting releases through environments</li>
+                </ul>
+                <aside class="notes">
+                    That's just common sense now.
+                </aside>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2><strong>Scala</strong> Code</h2>
+                <p><small><em>here it gets tricky</em></small></p>
+                <aside class="notes">
+                    <p>companies and teams have different opinions</p>
+                    <p>easy to staff, solid tools, great products</p>
+                    <p>new languages, technologies, abstractions - toys</p>
+                </aside>
+            </section>
+            <section>
+                <h2>Detractors say ...</h2>
+                <ul>
+                    <li>Complex Concepts</li>
+                    <li>Unreadable code</li>
+                    <li>Build times / SBT</li>
+                    <li>IDEs</li>
+                </ul>
+            </section>
+            <section>
+                <h2>What we've done</h2>
+                <ul>
+                    <li>Invested in training courses</li>
+                    <li>Defined our coding style</li>
+                    <li>Banned Scala<strong>z</strong></li>
+                    <li>Required decent documentation</li>
+                </ul>
+            </section>
+            <section>
+                <h2>Our code looks like this</h2>
+                <img class="svgimg" src="img/code.png"/>
+            </section>
+            <section>
+                <pre><code data-trim>/**
+  * Directive definition that is able to extract field values
+  * of type [[spray.json.JsValue]] from the request payload.
+  * The directive offers the following functions / syntax variants:
+  * {{{
+  *   def route = post {
+  *     (post & entity(as[JsObject])) { implicit body =>
+  *       fields("num".as[JsNumber].?) { num =>
+  *         // num is inferred as `Option[JsNumber]`
+  *         complete(...)
+  *       }
+  *     }
+  *   }
+  * }}}
+  * ...
+  */</code></pre>
+
+                <pre><code data-trim>trait JsonFieldDirectives {
+  import JsonFieldDirectives._
+
+  def fields(jfm: JsonFieldMagnet): jfm.Out = jfm()
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>import akka.http.scaladsl.server.util.BinaryPolyFunc
+import akka.http.scaladsl.server.util.TupleOps._
+
+implicit def forTuple[A](implicit
+  fold: FoldLeft[
+    Directive0, A, ConvertJsonFieldDefAndConcatenate.type
+  ]): JsonFieldDefAux[A, fold.Out] =
+  jsonFieldDef[A, fold.Out](fold(BasicDirectives.pass, _))
+
+object ConvertJsonFieldDefAndConcatenate extends BinaryPolyFunc {
+  implicit def from[A, TA, TB](implicit
+    jsfdef: JsonFieldDef[A] { type Out = Directive[TB] },
+    ev: Join[TA, TB]): BinaryPolyFunc.Case[
+      Directive[TA], A, ConvertJsonFieldDefAndConcatenate.type
+    ] { type Out = Directive[ev.Out] } =
+    at[Directive[TA], A] { (a, t) => a & jsfdef(t) }
+}</code></pre>
+            </section>
+            <section>
+                <pre><code data-trim>// the block below enables calling the JsonFieldDirectives#fields
+// with multiple arguments by folding the resulting
+// directives into a single Directive typed with a tuple, i.e.:
+// {{{
+//   fields("num".as[JsNumber], "currency") { (num, currency) =>
+//     complete(...)
+//   }
+// }}}
+import akka.http.scaladsl.server.util.BinaryPolyFunc
+import akka.http.scaladsl.server.util.TupleOps._
+
+implicit def forTuple[A](implicit
+  fold: FoldLeft[
+    Directive0, A, ConvertJsonFieldDefAndConcatenate.type
+  ]): JsonFieldDefAux[A, fold.Out] =
+  jsonFieldDef[A, fold.Out](fold(BasicDirectives.pass, _))
+
+object ConvertJsonFieldDefAndConcatenate extends BinaryPolyFunc {
+  implicit def from[A, TA, TB](implicit
+    jsfdef: JsonFieldDef[A] { type Out = Directive[TB] },
+    ev: Join[TA, TB]): BinaryPolyFunc.Case[
+      Directive[TA], A, ConvertJsonFieldDefAndConcatenate.type
+    ] { type Out = Directive[ev.Out] } =
+    at[Directive[TA], A] { (a, t) => a & jsfdef(t) }
+}</code></pre>
+            </section>
+            <section>
+                <h2>The philosophy</h2>
+                <ul>
+                    <li>Write code like you'd like to find written</li>
+                    <li>Don't use features you don't need</li>
+                </ul>
+            </section>
+            <section>
+                <h2>Detractors say ...</h2>
+                <ul>
+                    <li class="strikethrough">Complex Concepts</li>
+                    <li class="strikethrough">Unreadable code</li>
+                    <li>Build times / SBT</li>
+                    <li>IDEs</li>
+                </ul>
+                <aside class="notes">
+                    buy decent hardware: quad core + ssd
+                </aside>
+            </section>
+            <section>
+                <h2>Our typical SBT build</h2>
+                <pre><code data-trim>import organisation.bom.sbt.plugin._
+import organisation.sbt.plugin._
+import sbt._
+import sbt.Keys._
+
+lazy val someProject = proj("some-project")
+  .enablePlugins(ITSbtPlugin)
+  .settings(Shapeless.version := "2.3.0")
+  .settings(Akka.http, TypesafeConfig(), Shapeless(), ScalaTest())
+  .settings(libraryDependencies ++= List(
+    "org.another1" % "artifact1" % "1.2.3",
+    "org.another2" % "artifact2" % "1.2.3",
+    "org.another3" % "artifact3" % "1.2.3" % IntegrationTest,
+    "org.another4" % "artifact4" % "1.2.3" % IntegrationTest))</code></pre>
+            </section>
+            <section>
+                <h2>Other Thoughts</h2>
+                <ul>
+                    <li><strong>Don't</strong> use the Cake Pattern<br/><small><em>... unless you know what you're doing.</em></small></li>
+                    <li>Consider learning about Type Classes<br/><small><em>... at least for your internal libraries</em></small></li>
+                </ul>
+                <aside class="notes">
+                    hygenic, mutability, concurrency
+                </aside>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>Akka</h2>
+                <aside class="notes">
+                </aside>
+            </section>
+        </section>
+        <section>
+            <section>
+                <h2>Delivery</h2>
+                <aside class="notes">
+                </aside>
+            </section>
+        </section>
+        <section>
+            <h1>Q & A</h1>
+            <p>Thank you for listening</p>
+            <p><small>Email me @ <a href="mailto:bogdan.roman@endava.com">Bogdan Roman</a></small></p>
+        </section>
+    </div>
+</div>
+
+<div id="logo"><img src="../img/logo.png"/></div>
+<div id="footer"></div>
+
+<script src="../lib/js/head.min.js"></script>
+<script src="../js/reveal.js"></script>
+
+<script>
+    // Full list of configuration options available at:
+    // https://github.com/hakimel/reveal.js#configuration
+    Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        slideNumber: 'c',
+
+        transition: 'zoom', // none/fade/slide/convex/concave/zoom
+        transitionSpeed: 'fast', // default/fast/slow
+
+        // Optional reveal.js plugins
+        dependencies: [
+            { src: '../lib/js/classList.js', condition: function() { return !document.body.classList; } },
+            { src: '../plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: '../plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+            { src: '../plugin/highlight/highlight.pack.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+            { src: '../plugin/zoom-js/zoom.js', async: true },
+            { src: '../plugin/notes/notes.js', async: true }
+        ]
+    });
+</script>
+
+</body>
+</html>
